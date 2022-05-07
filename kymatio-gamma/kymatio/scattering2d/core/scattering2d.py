@@ -15,13 +15,17 @@ def scattering2d(x, pad, unpad, backend, J, L, phi, psi, max_order,
 
     # Define lists for output.
     out_S_0, out_S_1, out_S_2 = [], [], []
+    
 
-    U_r = pad(x)
-
+    N = 2**(2*J)
+    
+    
+    U_r_c = pad(x)
+    U_r = modulus(U_r_c)
 
 
     # Gamma components
-    U_0_r_l = log(U_r + 1e-1)
+    U_0_r_l = (log(U_r + 1e-32))
 #    U_0_r_l = (U_r)
     U_0_r_p = U_r * U_0_r_l
 
@@ -56,7 +60,6 @@ def scattering2d(x, pad, unpad, backend, J, L, phi, psi, max_order,
     S_0_r_p = unpad(S_0_r_p)
 
 #    Ν = 2**(2*J)
-    N = 2**(2*J)
     S_0_k = N* S_0 / ( N * S_0_r_p - S_0_r_l * S_0)
     S_0_theta = ( N* S_0_r_p - S_0_r_l * S_0)/N**2
 
@@ -67,6 +70,7 @@ def scattering2d(x, pad, unpad, backend, J, L, phi, psi, max_order,
     out_S_0.append({'coef': S_0,
                     'coef_shape': S_0_k,
                     'coef_scale': S_0_theta,
+                    'coef_rate': 1./S_0_theta,
                     'j': (),
                     'theta': ()})
 
@@ -81,7 +85,7 @@ def scattering2d(x, pad, unpad, backend, J, L, phi, psi, max_order,
         U_1_c = modulus(U_1_c)
         
         # Gamma components
-        U_1_c_l = log(U_1_c + 1e-16)
+        U_1_c_l = log(U_1_c + 1e-32)
 #        U_1_c_l = (U_1_c)
         U_1_c_p = U_1_c * U_1_c_l
 
@@ -113,13 +117,14 @@ def scattering2d(x, pad, unpad, backend, J, L, phi, psi, max_order,
         S_1_r_p = unpad(S_1_r_p)
 
         Ν = 2**(2*J)
-        S_1_k = N* S_1_r / ( N * S_1_r_p - S_1_r_l * S_1_r)
-        S_1_theta = ( N* S_1_r_p - S_1_r_l * S_1_r)/N**2
+        S_1_k = N * S_1_r  / ( N * S_1_r_p - S_1_r_l * S_1_r)
+        S_1_theta = ( N* S_1_r_p - S_1_r_l * S_1_r )/N**2
 
 
         out_S_1.append({'coef': S_1_r,
                         'coef_shape': S_1_k,
                         'coef_scale': S_1_theta,
+                        'coef_rate': 1./S_1_theta,
                         'j': (j1,),
                         'theta': (theta1,)})
 
@@ -138,7 +143,7 @@ def scattering2d(x, pad, unpad, backend, J, L, phi, psi, max_order,
             U_2_c = modulus(U_2_c)
 
             # Gamma stuff
-            U_2_c_l = log(U_2_c+ 1e-16)
+            U_2_c_l = log(U_2_c+ 1e-32)
 #            U_2_c_l = (U_2_c)
             U_2_c_p = U_2_c * U_2_c_l
 
@@ -175,6 +180,7 @@ def scattering2d(x, pad, unpad, backend, J, L, phi, psi, max_order,
             out_S_2.append({'coef': S_2_r,
                             'coef_shape': S_2_k,
                             'coef_scale': S_2_theta,
+                            'coef_rate': 1./S_2_theta,
                             'j': (j1, j2),
                             'theta': (theta1, theta2)})
 
@@ -185,12 +191,14 @@ def scattering2d(x, pad, unpad, backend, J, L, phi, psi, max_order,
 
     if out_type == 'array':
         
-        out_S = concat_gamma(concatenate([x['coef'] for x in out_S]), concatenate([x['coef_shape'] for x in out_S]), concatenate([x['coef_scale'] for x in out_S]))
-#        out_S = concat_gamma2(concatenate([x['coef'] for x in out_S]), concatenate([x['coef_scale'] for x in out_S]))
+#        out_S = concat_gamma(concatenate([x['coef'] for x in out_S]), concatenate([x['coef_shape'] for x in out_S]), concatenate([x['coef_scale'] for x in out_S]))
+        out_S = concat_gamma2(concatenate([x['coef_shape'] for x in out_S]), concatenate([x['coef_scale'] for x in out_S]))
+#        out_S = concat_gamma2(concatenate([x['coef_shape'] for x in out_S]), concatenate([x['coef_rate'] for x in out_S]))
 
 #        out_S = concatenate([x['coef_shape'] for x in out_S])
         
     return out_S
+#    return [U_r, U_0_r_l]
 
 
 __all__ = ['scattering2d']
